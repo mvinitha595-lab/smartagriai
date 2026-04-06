@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5" style="color:white;">
+
+
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="title">🌿 Admin Dashboard</h3>
+
+    <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">
+        🔓 Logout
+    </a>
+</div>
+<!-- TOP STATS -->
+<div class="row g-4 mt-2">
+
+<div class="col-md-3">
+<div class="glass text-center p-3">
+<h6>👨‍🌾 Farmers</h6>
+<h3>{{ total_farmers }}</h3>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="glass text-center p-3">
+<h6>📊 Accuracy</h6>
+<h3>{{ accuracy }}%</h3>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="glass text-center p-3">
+<h6>📁 Records</h6>
+<h3>{{ total_records }}</h3>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="glass text-center p-3">
+<h6>💰 Savings</h6>
+<h3>₹ {{ total_savings }}</h3>
+</div>
+</div>
+
+</div>
+
+<!-- ALERT -->
+{% if high_risk_count > 0 %}
+<div class="alert alert-danger mt-4">
+⚠ {{ high_risk_count }} high-risk disease cases detected!
+</div>
+{% endif %}
+
+<!-- MONITOR -->
+<div class="glass mt-3 p-3">
+<h6>⚠ System Monitoring</h6>
+<p>High Risk Cases: <b class="text-danger">{{ high_risk_count }}</b></p>
+
+<a href="/admin/" class="btn btn-outline-light mt-2">
+⚙ Open Django Admin Panel
+</a>
+</div>
+
+<!-- CHARTS -->
+<div class="row mt-4 g-4">
+
+<div class="col-md-6">
+<div class="glass p-3">
+<h6>🌾 Crop Popularity</h6>
+<canvas id="cropChart"></canvas>
+</div>
+</div>
+
+<div class="col-md-6">
+<div class="glass p-3">
+<h6>🦠 Disease Distribution</h6>
+<canvas id="diseaseChart"></canvas>
+</div>
+</div>
+
+</div>
+
+
+
+<!-- CHART JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+new Chart(document.getElementById("cropChart"), {
+type: "bar",
+data: {
+labels: {{ crop_labels|safe }},
+datasets: [{
+data: {{ crop_values|safe }},
+backgroundColor: "#2ecc71"
+}]
+}
+});
+
+new Chart(document.getElementById("diseaseChart"), {
+type: "pie",
+data: {
+labels: {{ disease_labels|safe }},
+datasets: [{
+data: {{ disease_counts|safe }},
+backgroundColor: ["#e74c3c","#f1c40f","#2ecc71"]
+}]
+}
+});
+</script>
+
+<style>
+body{
+background:#0f1f17;
+}
+.glass{
+background:rgba(255,255,255,0.05);
+border-radius:15px;
+}
+</style>
+
+{% endblock %}

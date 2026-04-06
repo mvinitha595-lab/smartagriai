@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feed Management | SmartAgri AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --agri-green: #2ecc71;
+            --glass-bg: rgba(18, 35, 28, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #0f1f17, #12352c);
+            color: #eafaf1;
+            font-family: "Segoe UI", sans-serif;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            margin-bottom: 25px;
+        }
+
+        /* ANIMAL SELECTION BOXES */
+        .animal-card {
+            cursor: pointer;
+            transition: 0.3s;
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            display: block;
+        }
+        .animal-card:hover {
+            background: rgba(46,204,113,0.1);
+            transform: translateY(-5px);
+        }
+        .animal-card input { display: none; }
+        .animal-card.active {
+            border: 2px solid var(--agri-green);
+            background: rgba(46,204,113,0.15);
+        }
+
+        .btn-green {
+            background: var(--agri-green);
+            border: none;
+            color: #000;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 12px;
+            transition: 0.3s;
+        }
+        .btn-green:hover { background: #27ae60; transform: scale(1.02); }
+
+        .chart-wrapper { max-width: 320px; margin: auto; }
+        .back-link { color: #cfd8d3; text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { color: var(--agri-green); }
+        
+        h5 { color: #b9f6ca; font-weight: 600; }
+        .stat-value { color: var(--agri-green); font-weight: 800; font-size: 1.4rem; }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <a href="{% url 'organic_livestock' %}" class="back-link mb-3 d-inline-block">← Back to Farm Overview</a>
+    <h2 class="mb-4 fw-bold">🌿 AI Feed Optimization System</h2>
+
+    <div class="row">
+        <div class="col-lg-5">
+            <div class="glass-card">
+                <form method="POST" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <h5 class="mb-3">1. Select Animal</h5>
+                    <div class="row g-3 mb-4">
+                        {% for animal in livestock %}
+                        <div class="col-4">
+                            <label class="animal-card">
+                                <input type="radio" name="animal" value="{{ animal.id }}" required>
+                                <h1 class="mb-1">
+                                    {% if animal.animal_type == "cow" %}🐄
+                                    {% elif animal.animal_type == "goat" %}🐐
+                                    {% else %}🐓{% endif %}
+                                </h1>
+                                <h6 class="mb-0 small">{{ animal.animal_type|title }}</h6>
+                                <small >{{ animal.weight_kg }}kg</small>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <h5 class="mb-3">2. Select Season</h5>
+                    <select class="form-select mb-4 bg-dark text-light border-secondary" name="season" required>
+                        <option value="">Choose season...</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Winter">Winter</option>
+                        <option value="Summer">Summer</option>
+                    </select>
+
+                    <button type="submit" id="aiButton" class="btn btn-green w-100">
+                        🤖 Calculate AI Feed Plan
+                    </button>
+                </form>
+            </div>
+
+            {% if animal_profile %}
+            <div class="glass-card">
+                <h5 class="mb-4">🐾 Livestock Profile Summary</h5>
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <small >Type</small>
+                        <span class="stat-value">{{ animal_profile.type }}</span>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <small >Weight</small>
+                        <span class="stat-value">{{ animal_profile.weight }} kg</span>
+                    </div>
+                    <div class="col-6">
+                        <small >Age</small>
+                        <span class="stat-value">{{ animal_profile.age }} Mo.</span>
+                    </div>
+                    
+                </div>
+                <hr class="border-secondary">
+                <div class="text-center">
+                    <small >Predicted Daily Requirement</small>
+                    <h2 class="text-success fw-bold">{{ animal_profile.total_feed }} kg/day</h2>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-7">
+            {% if feed_result %}
+            <div class="glass-card">
+                <h5 class="mb-3">📊 AI Feed Recommendation</h5>
+                <div class="row align-items-center">
+                    <div class="col-md-7">
+                        <ul class="list-group list-group-flush bg-transparent">
+                            {% for key, value in feed_result.items %}
+                            <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                                <strong>{{ key }}:</strong> <span>{{ value }} kg</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="col-md-5 text-center">
+                        <div class="chart-wrapper">
+                            <canvas id="feedChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                {% if health_note %}
+                <div class="mt-4 p-3 border-start border-success border-4" style="background:rgba(46,204,113,0.1); border-radius:4px;">
+                    <small class="text-success fw-bold">💡 HEALTH INSIGHT</small><br>
+                    {{ health_note }}
+                </div>
+                {% endif %}
+            </div>
+
+            {% if organic_cost %}
+            <div class="glass-card">
+                <h5>💰 Cost & Circular Insights</h5>
+                <div class="row text-center mt-3 g-2">
+                    <div>
+                        
+                
+                     
+            <div class="glass-card">
+                <h5 class="mb-4"><i class="fas fa-hand-holding-usd me-2"></i> Economic Impact Analysis</h5>
+                <div class="row text-center mb-3">
+                    <div class="col-4 border-end border-secondary">
+                        <small >ORGANIC</small>
+                        <span class="fw-bold">₹{{ organic_cost }}</span>
+                    </div>
+                    <div class="col-4 border-end border-secondary">
+                        <small>MARKET</small>
+                        <span class="fw-bold">₹{{ market_cost }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small >SAVINGS</small>
+                        <span class="fw-bold {% if cost_savings > 0 %}text-success{% else %}text-danger{% endif %}">₹{{ cost_savings }}</span>
+                    </div>
+                </div>
+                <div class="alert bg-success bg-opacity-10 text-success border-0 small mb-0">
+                    <i class="fas fa-info-circle me-2"></i> {{ cost_note }}
+                </div>
+            </div>
+            </div>
+            
+                {% if manure_output %}
+                <div class="mt-4 p-3 bg-warning bg-opacity-10 rounded">
+                    <small class="text-warning fw-bold">♻ CIRCULAR FARMING</small><br>
+                    {{ circular_note }}
+                </div>
+                {% endif %}
+                {% if fertilizer_profile %}
+                <div class="glass-card mt-4">
+                    <h5>🌿 Nutrient Optimization Report</h5>
+                    <ul>
+                        {% for key, value in fertilizer_profile.items %}
+                            <li><strong>{{ key }}:</strong> {{ value }}</li>
+                        {% endfor %}
+                    </ul>
+                
+                    <div class="mt-2 p-3" style="background:rgba(46,204,113,0.15); border-radius:10px;">
+                        💡 Based on current livestock diet, manure provides optimized organic NPK nutrients.
+                    </div>
+                </div>
+                {% endif %}
+                
+                <form method="POST" action="{% url 'download_feed_pdf' %}" class="mt-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="animal_type" value="{{ animal_profile.type }}">
+                    <input type="hidden" name="feed_result" value="{{ feed_result }}">
+                    <input type="hidden" name="health_note" value="{{ health_note }}">
+                    <input type="hidden" name="manure_output" value="{{ manure_output }}">
+                    <input type="hidden" name="organic_cost" value="{{ organic_cost }}">
+                    <input type="hidden" name="market_cost" value="{{ market_cost }}">
+                    <input type="hidden" name="cost_note" value="{{ cost_note }}">
+                    <button type="submit" class="btn btn-outline-success w-100 fw-bold">
+                        📄 Download Feed Plan (PDF)
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+           
+            
+            {% endif %} </div>
+    </div>
+</div>
+
+<script>
+    const cards = document.querySelectorAll(".animal-card");
+    cards.forEach(card => {
+        card.addEventListener("click", () => {
+            cards.forEach(c => c.classList.remove("active"));
+            card.classList.add("active");
+        });
+    });
+
+    {% if feed_chart_labels %}
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('feedChart');
+        if (!ctx) return;
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ feed_chart_labels|safe }},
+                datasets: [{
+                    data: {{ feed_chart_data|safe }},
+                    backgroundColor: ['#2ecc71', '#27ae60', '#1abc9c', '#16a085', '#f1c40f'],
+                    borderWidth: 2,
+                    borderColor: "#0f1f17"
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "65%",
+                plugins: { legend: { display: false } }
+            }
+        });
+    });
+    {% endif %}
+
+    document.querySelector("form").addEventListener("submit", function(e) {
+        const form = this;
+        if (!form.checkValidity()) return;
+        e.preventDefault();
+        const loader = document.getElementById("aiLoader");
+        const button = document.getElementById("aiButton");
+        loader.style.display = "flex";
+        button.disabled = true;
+        setTimeout(() => { form.submit(); }, 1200);
+    });
+</script>
+
+<div id="aiLoader" style="display:none; position:fixed; inset:0; background:rgba(15,31,23,0.9); backdrop-filter:blur(8px); z-index:9999; justify-content:center; align-items:center; flex-direction:column; color:#2ecc71; font-weight:600;">
+    <div class="spinner-border text-success mb-3" style="width:3rem;height:3rem;"></div>
+    🤖 Optimizing Organic Feed Plan...
+</div>
+
+</body>
+</html>
+{% endblock %}

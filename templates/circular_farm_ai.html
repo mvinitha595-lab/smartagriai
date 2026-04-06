@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>🔄 Circular Farming Intelligence</h2>
+
+{% if integration %}
+
+<p><strong>Recommended Crop:</strong> {{ integration.crop }}</p>
+<p><strong>Weekly Manure Available:</strong> {{ integration.manure_available }} kg</p>
+<p><strong>Required for Crop:</strong> {{ integration.required_weight }} kg</p>
+
+{% if integration.surplus >= 0 %}
+<p style="color: lightgreen;">
+    Surplus: {{ integration.surplus }} kg
+</p>
+{% else %}
+<p style="color: red;">
+    Deficit: {{ integration.surplus }} kg
+</p>
+{% endif %}
+
+<hr>
+<h4>🤖 AI Advisory</h4>
+<p>{{ integration.advisory }}</p>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Field History | SmartAgri AI</title>
+
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+/* ================= BACKGROUND VIDEO ================= */
+#bg-video{
+  position:fixed;
+  right:0;
+  bottom:0;
+  min-width:100%;
+  min-height:100%;
+  object-fit:cover;
+  z-index:-2;
+}
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:-1;
+}
+
+/* ================= GENERAL ================= */
+body{
+  color:#eafaf1;
+  font-family:Segoe UI,system-ui;
+}
+
+/* ================= GLASS CARDS ================= */
+.glass{
+  background:rgba(18,38,28,.85);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 15px 40px rgba(0,0,0,.4);
+}
+
+/* ================= HEADINGS ================= */
+.section-title{
+  font-size:1.2rem;
+  font-weight:600;
+  color:#2ecc71;   /* 🔥 FIX: heading visibility */
+  margin-bottom:15px;
+}
+
+/* ================= TABLE ================= */
+.table,
+.table tbody,
+.table tr,
+.table td {
+  background: rgba(18,38,28,.9) !important;
+  color: #eafaf1 !important;
+}
+
+
+/* ================= BADGES ================= */
+.badge-success{
+  background:#27ae60;
+}
+
+/* ================= BUTTONS ================= */
+.btn-icon{
+  padding:6px 10px;
+  border-radius:8px;
+}
+
+/* ================= SEARCH ================= */
+.search-box{
+  background:rgba(18,38,28,.9);
+  border:1px solid #2ecc71;
+  color:#eafaf1;
+}
+
+/* ================= CHART SIZE FIX ================= */
+.chart-box{
+  height:320px;   /* 🔥 soil graph bigger */
+}
+
+
+/* SOIL pH TREND */
+new Chart(document.getElementById("soilChart"), {
+  type: "line",
+  data: {
+    labels: {{ dates|safe }},
+    datasets: [{
+      label: "Soil pH",
+      data: {{ ph_values|safe }},
+      borderColor: "#2ecc71",
+      backgroundColor: "rgba(46,204,113,.25)",
+      fill: true,
+      tension: 0.4
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        labels: { color: "#eafaf1" }
+      }
+    },
+    scales: {
+      x: { ticks: { color: "#eafaf1" }},
+      y: {
+        ticks: { color: "#eafaf1" },
+        suggestedMin: 3,
+        suggestedMax: 9
+      }
+    }
+  }
+});
+
+
+</style>
+</head>
+
+<body>
+
+<!-- BACKGROUND -->
+<video autoplay muted loop id="bg-video">
+  <source src="{% static 'videos/agriculture_bg.mp4' %}" type="video/mp4">
+</video>
+<div class="overlay"></div>
+
+<div class="container py-4">
+
+<!-- HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3>📒 Field Prediction History</h3>
+  <a href="{% url 'farmer_dashboard' %}" class="btn btn-outline-success">
+    ← Dashboard
+  </a>
+</div>
+
+<!-- =================== CHARTS =================== -->
+<div class="row g-4 mb-4">
+
+  <!-- SOIL TREND -->
+  <div class="col-md-7">
+    <div class="glass chart-box">
+      <div class="section-title">📈 Soil Parameter Trend (pH)</div>
+      <canvas id="soilChart"></canvas>
+    </div>
+  </div>
+
+  <!-- CROP DISTRIBUTION -->
+  <div class="col-md-5">
+    <div class="glass chart-box">
+      <div class="section-title">🌾 Crop Distribution</div>
+      <canvas id="cropChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- SEARCH -->
+<input type="text" class="form-control mb-3 search-box"
+       placeholder="🔍 Search crop name (e.g. rice, maize)"
+       onkeyup="filterTable(this.value)">
+
+<!-- =================== TABLE =================== -->
+<div class="glass">
+<table class="table table-dark table-hover mt-3">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Crop</th>
+      <th>pH</th>
+      <th>Rainfall (mm)</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="historyTable">
+  {% for h in history %}
+    <tr>
+      <td>{{ h.created_at|date:"d M Y" }}</td>
+      <td>{{ h.crop_name|title }}</td>
+      <td>{{ h.ph }}</td>
+      <td>{{ h.rainfall }}</td>
+      <td>
+        <span class="badge badge-success">Saved</span>
+      </td>
+      <td>
+        <a href="{% url 'crop_advisory_pdf' %}" class="btn btn-sm btn-outline-light btn-icon">
+          <i class="bi bi-file-earmark-pdf"></i>
+        </a>
+        
+      </td>
+    </tr>
+  {% empty %}
+    <tr>
+      <td colspan="6" class="text-center text-muted">
+        No history found. Run your first prediction 🌱
+      </td>
+      <td><a href="{% url 'history_pdf'  %}"
+   class="btn btn-sm btn-outline-light btn-icon"
+   title="Download PDF">
+   <i class="bi bi-file-earmark-pdf"></i></td>
+</a>
+
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<div>
+  <div class="d-flex justify-content-between align-items-center mb-4"></div>
+<h4 >🌿 Disease Detection History</h4>
+
+<table class="table table-dark table-hover mt-3">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Disease</th>
+      <th>Severity</th>
+      <th>Confidence</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for d in disease_history %}
+    <tr>
+      <!-- DATE (NO TIME) -->
+      <td>{{ d.created_at|date:"d M Y" }}</td>
+
+      <td>{{ d.disease_name }}</td>
+
+      <td>
+        {% if d.severity == "High" %}
+          <span class="badge bg-danger">High</span>
+        {% elif d.severity == "Medium" %}
+          <span class="badge bg-warning text-dark">Medium</span>
+        {% else %}
+          <span class="badge bg-success">Low</span>
+        {% endif %}
+      </td>
+
+      <td>{{ d.confidence }}%</td>
+
+      <!-- ACTION -->
+      <td>
+        <a href="{% url 'disease_history_pdf'  %}" class="btn btn-sm btn-outline-light btn-icon">
+          <i class="bi bi-file-earmark-pdf"></i>
+        </a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="5" class="text-center text-muted">
+        No disease detection history found
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+</div>
+
+<!-- =================== JS =================== -->
+<script>
+/* SEARCH FILTER */
+function filterTable(value){
+  value = value.toLowerCase();
+  document.querySelectorAll("#historyTable tr").forEach(row=>{
+    row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+  });
+}
+
+
+
+/* CROP DISTRIBUTION */
+new Chart(document.getElementById("cropChart"),{
+  type:"pie",
+  data:{
+    labels: {{ crop_labels|safe }},
+    datasets:[{
+      data: {{ crop_values|safe }},
+      backgroundColor:[
+        "#27ae60","#2ecc71","#1abc9c",
+        "#16a085","#58d68d"
+      ]
+    }]
+  },
+  options:{
+    plugins:{ legend:{ labels:{ color:"#eafaf1" }}}
+  }
+});
+
+
+/* SEARCH FILTER */
+function filterTable(value){
+  value = value.toLowerCase();
+  document.querySelectorAll("#historyTable tr").forEach(row=>{
+    row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+  });
+}
+
+/* SOIL pH TREND (✅ FIXED) */
+const soilCtx = document.getElementById("soilChart").getContext("2d");
+
+new Chart(soilCtx, {
+  type: "line",
+  data: {
+    labels: {{ dates|safe }},
+    datasets: [{
+      label: "Soil pH",
+      data: {{ ph_values|safe }},
+      borderColor: "#2ecc71",
+      backgroundColor: "rgba(46,204,113,0.25)",
+      fill: true,
+      tension: 0.4,
+      pointRadius: 5
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        labels: { color: "#eafaf1" }
+      }
+    },
+    scales: {
+      x: { ticks: { color: "#eafaf1" }},
+      y: {
+        ticks: { color: "#eafaf1" },
+        suggestedMin: 3,
+        suggestedMax: 9
+      }
+    }
+  }
+});
+
+/* CROP DISTRIBUTION (ALREADY OK) */
+new Chart(document.getElementById("cropChart"), {
+  type: "pie",
+  data: {
+    labels: {{ crop_labels|safe }},
+    datasets: [{
+      data: {{ crop_values|safe }},
+      backgroundColor: [
+        "#27ae60", "#2ecc71", "#1abc9c",
+        "#16a085", "#58d68d"
+      ]
+    }]
+  },
+  options: {
+    plugins: {
+      legend: { labels: { color: "#eafaf1" }}
+    }
+  }
+});
+
+
+
+
+</script>
+
+</body>
+</html>
+{% endblock %}
