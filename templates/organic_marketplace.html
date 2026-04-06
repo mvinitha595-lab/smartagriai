@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Organic Marketplace | SmartAgri AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --agri-green: #2ecc71;
+            --glass-bg: rgba(18, 35, 28, 0.95);
+            --glass-border: rgba(46, 204, 113, 0.2);
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #0f1f17, #12352c);
+            color: #ffffff;
+            font-family: "Segoe UI", sans-serif;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            height: 100%;
+        }
+
+        .text-label { 
+            color: #b9f6ca;
+            font-weight: 700;
+            font-size: 0.7rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            background: rgba(0,0,0,0.3) !important;
+            color: #ffffff !important;
+            border: 1px solid var(--glass-border) !important;
+            font-size: 0.9rem;
+        }
+
+        .btn-green {
+            background: var(--agri-green);
+            color: #000;
+            font-weight: 750;
+            border-radius: 10px;
+            border: none;
+        }
+
+        /* FIXING THE LIST HEADINGS */
+        .market-header {
+            display: flex;
+            padding: 10px 15px;
+            background: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .market-item {
+            display: flex;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
+        }
+        .market-item:hover { background: rgba(46, 204, 113, 0.05); border-color: var(--agri-green); }
+
+        /* Column Widths for Alignment */
+        .col-farmer { flex: 2; }
+        .col-product { flex: 2; }
+        .col-price { flex: 1; text-align: center; }
+        .col-npk { flex: 1.5; text-align: center; }
+        .col-quality { flex: 1.5; text-align: right; }
+
+        .badge-organic { background: #2ecc71; color: #000; padding: 3px 8px; border-radius: 4px; font-weight: 800; font-size: 0.6rem; }
+        .badge-standard { background: #555; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: 800; font-size: 0.6rem; }
+        
+        .tight-gap { --bs-gutter-x: 15px; --bs-gutter-y: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid py-4 px-lg-5">
+    <a href="{% url 'farmer_dashboard' %}">← Back to Dashboard</a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0">🧺 Smart Organic Marketplace</h3>
+            <p class="small mb-0 opacity-75">Buy and sell nutrients with AI logistics support.</p>
+        </div>
+        <div class="badge bg-success px-3 py-2 fw-bold">MARKET ACTIVE</div>
+    </div>
+
+    <div class="row tight-gap align-items-stretch">
+        
+        <div class="col-lg-3">
+            <div class="glass-card">
+                <h6 class="text-label mb-4 text-success"><i class="fas fa-plus-circle me-2"></i> New Listing</h6>
+                <form method="post" class="h-100 d-flex flex-column">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="text-label">Farmer Identity</label>
+                        <input class="form-control" name="farmer_name" placeholder="Full Name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-label">Product & Qty</label>
+                        <div class="input-group">
+                            <input class="form-control" name="product_type" placeholder="Type" style="width: 60%;">
+                            <input class="form-control" type="number" name="quantity_kg" placeholder="Kg" style="width: 40%;">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="text-label">Price / KG</label>
+                            <input class="form-control" type="number" name="price_per_kg" placeholder="₹">
+                        </div>
+                        <div class="col-6">
+                            <label class="text-label">Location</label>
+                            <input class="form-control" name="location" placeholder="Village">
+                        </div>
+                    </div>
+                    
+                    <div class="p-2 rounded bg-dark bg-opacity-50 border border-secondary mb-4">
+                        <span class="text-label" style="font-size:0.6rem">NPK RATIO (%)</span>
+                        <div class="row g-1">
+                            <div class="col-4"><input class="form-control form-control-sm text-center" name="nitrogen" placeholder="N"></div>
+                            <div class="col-4"><input class="form-control form-control-sm text-center" name="phosphorus" placeholder="P"></div>
+                            <div class="col-4"><input class="form-control form-control-sm text-center" name="potassium" placeholder="K"></div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-green w-100 fw-bold mt-auto py-2">POST LISTING</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="glass-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-label mb-0 text-white">Available Stock</h6>
+                    <span class="small fw-bold text-success">{{ listings|length }} ITEMS FOUND</span>
+                </div>
+
+                <div class="market-header">
+                    <div class="col-farmer text-label">Farmer</div>
+                    <div class="col-product text-label">Product</div>
+                    <div class="col-price text-label">Price</div>
+                    <div class="col-npk text-label">NPK Ratio</div>
+                    <div class="col-quality text-label">Quality</div>
+                </div>
+
+                <div style="height: 480px; overflow-y: auto; padding-right: 5px;">
+                    {% for item in listings %}
+                    <div class="market-item">
+                        <div class="col-farmer">
+                            <div class="fw-bold small">{{ item.farmer_name }}</div>
+                            <div class="text-success" style="font-size: 0.65rem;">{{ item.location }}</div>
+                        </div>
+                        <div class="col-product">
+                            <div class="small">{{ item.product_type }}</div>
+                            <div class="opacity-50" style="font-size: 0.65rem;">{{ item.quantity_kg }} kg</div>
+                        </div>
+                        <div class="col-price fw-bold text-success">₹{{ item.price_per_kg }}</div>
+                        <div class="col-npk small opacity-75">{{ item.nitrogen|default:"0" }}/{{ item.phosphorus|default:"0" }}/{{ item.potassium|default:"0" }}</div>
+                        <div class="col-quality">
+                            {% if item.badge == "Certified Organic" %}
+                                <span class="badge-organic">ORGANIC</span>
+                            {% else %}
+                                <span class="badge-standard">STANDARD</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 opacity-50 small">No active listings in your region.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 d-flex flex-column gap-3">
+            <div class="glass-card h-auto">
+                <h6 class="text-label mb-3 text-success"><i class="fas fa-chart-line"></i> Market Intelligence</h6>
+                {% if average_price %}
+                <div class="mb-2">
+                    <span class="small opacity-75">Average Price</span>
+                    <h4 class="fw-bold text-success mb-0">₹{{ average_price }}</h4>
+                    <small class="{% if weekly_change > 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
+                        {{ weekly_change }}% vs last week
+                    </small>
+                </div>
+                {% endif %}
+                <div class="p-2 bg-dark rounded border-start border-warning border-4 mt-2">
+                    <span class="text-label" style="font-size:0.6rem">🔥 Hot Item</span>
+                    <div class="fw-bold text-white small">{{ trending_product|default:"Maize Mix" }}</div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <h6 class="text-label mb-3 text-info"><i class="fas fa-truck"></i> Logistics Optimizer</h6>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="text-label" style="font-size:0.6rem">DISTANCE (KM)</label>
+                        <input type="number" name="distance" class="form-control form-control-sm" placeholder="e.g. 25" value="{{ calculated_distance }}">
+                    </div>
+                    <button type="submit" name="calculate_freight" class="btn btn-outline-info w-100 btn-sm fw-bold mb-3">CALCULATE</button>
+                </form>
+                {% if delivery_cost %}
+                <div class="p-2 bg-info bg-opacity-10 border border-info rounded text-center">
+                    <span class="text-label text-info" style="font-size:0.6rem">Freight Cost</span>
+                    <h5 class="fw-bold text-info mb-0">₹{{ delivery_cost }}</h5>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if forecast_alert %}
+            <div class="glass-card h-auto border-start border-warning border-5">
+                <h6 class="text-warning fw-bold small">DEMAND ALERT</h6>
+                <p class="small mb-0 fw-bold">Surge in <b>{{ forecast_alert.crop }}</b> nutrient demand predicted.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+{% endblock %}

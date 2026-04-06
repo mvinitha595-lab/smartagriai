@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Organic & Livestock | SmartAgri AI</title>
+
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{
+  margin:0;
+  min-height:100vh;
+  background:#0f1f17;
+  color:#eafaf1;
+  font-family:"Segoe UI",sans-serif;
+}
+/* VIDEO BACKGROUND */
+        .bg-video {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10,20,15,0.75);
+            z-index: -1;
+        }
+.sidebar {
+            width: 240px;
+            height: 100vh;
+            background: rgba(15,30,20,0.9);
+            backdrop-filter: blur(14px);
+            padding: 20px;
+            position: fixed;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar h4 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            color: #e8f5e9;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: rgba(46,204,113,0.25);
+            box-shadow: inset 0 0 10px rgba(46,204,113,0.4);
+        }
+.content {
+  margin-left:240px;
+  padding: 30px;
+}
+.header {
+  margin-left:240px;
+  padding: 30px;
+}
+.card-glass{
+  background:rgba(18,35,28,0.9);
+  border-radius:16px;
+  padding:20px;
+  border:1px solid rgba(255,255,255,0.12);
+}
+/* GLASS CARD */
+        .glass {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 18px;
+        }
+
+        .kpi {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .kpi h3 {
+            font-weight: 700;
+        }
+
+        .alert-btn {
+            margin-top: 10px;
+            font-size: 0.85rem;
+        }
+
+.badge-ok{background:#2ecc71}
+.badge-warn{background:#f1c40f;color:#000}
+
+a{color:#7CFF9D;text-decoration:none}
+a:hover{color:#b9f6ca}
+
+ .btn-green {
+            background: var(--agri-green);
+            border: none;
+            color: #000;
+            font-weight: 750;
+            padding: 12px;
+            border-radius: 10px;
+        }
+        .btn-green:hover { background: #27ae60; transform: translateY(-2px); }
+</style>
+</head>
+
+<body>
+  <!-- VIDEO BACKGROUND -->
+<video autoplay muted loop class="bg-video">
+    <source src="{% static 'videos/agriculture_bg.mp4' %}" type="video/mp4">
+</video>
+<div class="overlay"></div>
+
+<div class="sidebar">
+    <h4>🌾 SmartAgri AI</h4>
+
+   <a class="nav-link" href="{% url 'feed_management' %}">
+🥬 Feed Management
+</a>
+<a href="{% url 'health_tracker' %}">🐄 Health Tracker</a>
+<a class="nav-link" href="{% url 'yield_monitoring' %}">
+🥛 Yield Monitoring
+</a>
+ <div class="mt-3">
+  <a href="{% url 'farmer_dashboard' %}" class="btn btn-outline-success">← Back to Dashboard</a>
+</div>
+</div>
+<!-- MAIN CONTENT -->
+<div class="content flex-grow-1">
+
+    
+  <h3 class="mb-4">🐄 Organic & Livestock Management</h3>
+  <p class="mb-0">Sustainable farming support system</p>
+</div>
+
+<div class="header">
+
+<!-- KPI ROW -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card-glass text-center">
+      <h6>Total Livestock</h6>
+      <h2>{{ total_livestock }}</h2>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card-glass text-center">
+      <h6>Daily Organic Waste</h6>
+      <h2>{{ total_waste }} kg</h2>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card-glass text-center">
+      <h6>Health Alerts</h6>
+      <h2>{{ alerts }}</h2>
+    </div>
+  </div>
+</div>
+
+<div class="stat-card">
+  <h4>Organic Fertilizer Potential</h4>
+  <h2>{{ total_land_coverage }} acre / month</h2>
+</div>
+
+<!-- LIVESTOCK TABLE -->
+<div class="card-glass">
+  <h5 class="mb-3">🐮 Livestock Records</h5>
+
+  <table class="table table-dark table-bordered table-hover">
+    <thead>
+      <tr>
+        <th>Animal</th>
+        <th>Breed</th>
+        <th>Age (months)</th>
+        <th>Weight (kg)</th>
+        <th>Health</th>
+        <th>Fertilizer Potential</th>
+        <th>Milk (L/day)</th>
+        <th>Eggs/day</th>
+        <th>Last Vaccination</th>
+        
+      </tr>
+    </thead>
+   <tbody>
+       {% for animal in livestock %}
+       <tr>
+           <td>{{ animal.animal_type }}</td>
+           <td>{{ animal.breed }}</td>
+           <td>{{ animal.age_months }}</td>
+           <td>{{ animal.weight_kg }}</td>
+           <td>{{ animal.health_status }}</td>
+           <td>{{ animal.daily_waste_kg }} kg/day</td>
+           <td>{{ animal.milk_per_day_litre|default:"—" }}</td>
+           <td>{{ animal.eggs_per_day|default:"—" }}</td>
+           <td>{{ animal.last_vaccination|default:"—" }}</td>
+           
+       </tr>
+       {% empty %}
+       <script>
+       const breedMap = {
+         cow: ["Jersey", "HF", "Gir", "Sahiwal"],
+         goat: ["Boer", "Jamunapari", "Black Bengal"],
+         poultry: ["Broiler", "Layer"]
+       };
+       
+       function updateBreed() {
+         const animal = document.getElementById("animal_type").value;
+         const breed = document.getElementById("breed");
+         breed.innerHTML = "";
+       
+         if (breedMap[animal]) {
+           breedMap[animal].forEach(b => {
+             const opt = document.createElement("option");
+             opt.value = b;
+             opt.textContent = b;
+             breed.appendChild(opt);
+           });
+         }
+       }
+       </script>
+       <tr>
+           <td colspan="6" style="text-align:center;">
+               No livestock records found
+           </td>
+       </tr>
+       {% endfor %}
+   </tbody>
+  </table>
+</div>
+{% for l in livestock_list %}
+<tr>
+    <td>{{ l.animal_type }}</td>
+    <td>{{ l.breed }}</td>
+    <td>{{ l.age_months }}</td>
+    <td>
+        {% if l.weight_kg %}
+            {{ l.weight_kg }} kg
+        {% else %}
+            —
+        {% endif %}
+    </td>
+    <td>{{ l.health_status }}</td>
+    <td>{{ l.daily_waste_kg }} kg/day</td>
+</tr>
+{% endfor %}
+
+
+</div>
+</body>
+</html>
+{% endblock %}

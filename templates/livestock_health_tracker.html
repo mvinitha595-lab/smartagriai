@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Livestock Health Tracker</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body style="background:#0f1f17;color:#eafaf1;">
+<div class="container mt-4">
+
+  <h3>🐄 Health Tracker</h3>
+  <p>
+    <strong>Animal:</strong> {{ livestock.animal_type }} |
+    <strong>Breed:</strong> {{ livestock.breed }}
+  </p>
+
+  <form method="post" class="card p-4 bg-dark text-light">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit" class="btn btn-success">
+      Update Health Record
+    </button>
+
+    <a href="{% url 'organic_livestock' %}" class="btn btn-secondary ms-2">
+      Cancel
+    </a>
+  </form>
+
+</div>
+</body>
+</html>
+{% endblock %}

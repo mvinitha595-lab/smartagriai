@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Organic Fertilizer Optimizer | SmartAgri</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        :root {
+            --agri-green: #2ecc71;
+            --glass-bg: rgba(18, 35, 28, 0.95);
+            --glass-border: rgba(46, 204, 113, 0.2);
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #0f1f17, #12352c);
+            color: #ffffff;
+            font-family: "Segoe UI", sans-serif;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .kpi-title {
+            color: #b9f6ca;
+            font-weight: 700;
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .section-title { color: var(--agri-green); font-weight: bold; }
+
+        /* MODERN MANURE SELECTION */
+        .manure-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .manure-card {
+            cursor: pointer;
+            transition: 0.3s;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+        }
+        .manure-card:hover { border-color: var(--agri-green); transform: translateY(-3px); }
+        .manure-card input { display: none; }
+        .manure-card.active, .manure-card input:checked + .card-content { 
+            border: 2px solid var(--agri-green); 
+            background: rgba(46, 204, 113, 0.15); 
+        }
+
+        .btn-green {
+            background: var(--agri-green);
+            border: none;
+            color: #000;
+            font-weight: 750;
+            padding: 12px;
+            border-radius: 10px;
+        }
+        .btn-green:hover { background: #27ae60; transform: translateY(-2px); }
+
+        .tight-gap { --bs-gutter-x: 15px; --bs-gutter-y: 15px; }
+        .chart-container { position: relative; height: 250px; width: 100%; }
+        
+        .result-highlight { border: 2px solid var(--agri-green); box-shadow: 0 0 20px rgba(46, 204, 113, 0.3); }
+    </style>
+</head>
+
+<body>
+<!-- 🌱 FLOATING HELP BUTTON -->
+<button id="soilHelpBtn"
+style="
+position: fixed;
+top: 20px;
+right: 20px;
+background: #2ecc71;
+border: none;
+color: black;
+padding: 10px 14px;
+border-radius: 20px;
+font-weight: bold;
+box-shadow: 0 0 10px rgba(46,204,113,0.6);
+z-index: 9999;
+"
+data-bs-toggle="modal"
+data-bs-target="#soilGuideModal">
+❓ Help
+</button>
+
+<div class="container py-4">
+   <a href="{% url 'farmer_dashboard' %}" class="btn btn-outline-success">
+    ← Dashboard
+  </a>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-0">🌱 AI Organic Fertilizer Optimizer</h3>
+            <p class="small mb-0" style="color: #cfd8dc;">Convert soil nutrient needs into optimized organic manure plans.</p>
+        </div>
+        {% if result %}
+        <a href="{% url 'download_fertilizer_report' %}" class="btn btn-outline-success btn-sm px-3 fw-bold">
+            <i class="fas fa-file-pdf me-1"></i> DOWNLOAD PLAN
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="row tight-gap align-items-stretch">
+        
+        <div class="col-lg-5">
+            <div class="glass-card">
+                <h5 class="section-title mb-4"><i class="fas fa-sliders-h me-2"></i> Smart Input Panel</h5>
+                
+                <form method="post" class="h-100 d-flex flex-column">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="kpi-title">Crop Category</label>
+                        <select class="form-select bg-dark text-white border-secondary" name="crop" required>
+                            <option value="">Select Crop...</option>
+                            <optgroup label="Cereals/Pulses">
+                                <option value="rice">Rice</option><option value="maize">Maize</option>
+                                <option value="chickpea">Chickpea</option><option value="kidneybeans">Kidney Beans</option>
+                            </optgroup>
+                            <optgroup label="Fruits">
+                                <option value="mango">Mango</option><option value="banana">Banana</option>
+                                <option value="apple">Apple</option><option value="grapes">Grapes</option>
+                            </optgroup>
+                            <option value="cotton">Cotton</option><option value="coffee">Coffee</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <label class="kpi-title">Nitrogen (N)</label>
+                            <input type="number" step="0.1" name="nitrogen" class="form-control bg-dark text-white border-secondary" value="{{ auto_n }}" required>
+                        </div>
+                        <div class="col-4">
+                            <label class="kpi-title">Phosphorus (P)</label>
+                            <input type="number" step="0.1" name="phosphorus" class="form-control bg-dark text-white border-secondary" value="{{ auto_p }}" required>
+                        </div>
+                        <div class="col-4">
+                            <label class="kpi-title">Potassium (K)</label>
+                            <input type="number" step="0.1" name="potassium" class="form-control bg-dark text-white border-secondary" value="{{ auto_k }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="kpi-title">Manure Preference</label>
+                        <div class="manure-grid">
+                            <label class="manure-card">
+                                <input type="radio" name="manure_type" value="Cow Manure" required>
+                                <div class="card-content">
+                                    <div class="small fw-bold">🐄 Cow</div>
+                                    <div style="font-size: 0.6rem;">N:0.5 P:0.3</div>
+                                </div>
+                            </label>
+                            <label class="manure-card">
+                                <input type="radio" name="manure_type" value="Goat Manure">
+                                <div class="card-content">
+                                    <div class="small fw-bold">🐐 Goat</div>
+                                    <div style="font-size: 0.6rem;">N:1.0 P:0.5</div>
+                                </div>
+                            </label>
+                            <label class="manure-card">
+                                <input type="radio" name="manure_type" value="Poultry Manure">
+                                <div class="card-content">
+                                    <div class="small fw-bold">🐔 Poultry</div>
+                                    <div style="font-size: 0.6rem;">N:2.0 P:1.5</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="kpi-title">Soil pH Level</label>
+                        <input type="number" step="0.1" name="soil_ph" class="form-control bg-dark text-white border-secondary" value="{{ auto_ph }}" required>
+                    </div>
+
+                    <button class="btn btn-green w-100 fw-bold">
+                        <i class="fas fa-brain me-2"></i> OPTIMIZE NUTRIENTS
+                    </button>
+
+                    <a href="?import_manure=true" class="btn btn-outline-success btn-sm w-100 mt-3 border-2 fw-bold">
+                        <i class="fas fa-sync-alt me-2"></i> IMPORT FROM LIVESTOCK
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-7 d-flex flex-column">
+            {% if result %}
+            <div class="glass-card result-highlight mb-3">
+                <span class="kpi-title text-center">AI Optimized Fertilizer Plan</span>
+                <div class="text-center py-2">
+                    <h1 class="fw-bold mb-0" style="color: var(--agri-green); font-size: 3rem;">{{ result.required_weight }} kg</h1>
+                    <div class="badge bg-success mt-2 px-3">Using {{ result.best_manure }}</div>
+                </div>
+                <div class="mt-2 text-center small text-white-50">
+                    Balanced for: N:{{ result.nitrogen }}kg | P:{{ result.phosphorus }}kg | K:{{ result.potassium }}kg
+                </div>
+            </div>
+
+            <div class="row g-2 flex-grow-1">
+                <div class="col-md-6">
+                    <div class="glass-card">
+                        <span class="kpi-title"><i class="fas fa-chart-pie me-1"></i> Nutrient Breakdown</span>
+                        <div class="chart-container">
+                            <canvas id="nutrientChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 d-flex flex-column gap-2">
+                    <div class="glass-card p-3">
+                        <span class="kpi-title text-success">Economic Savings</span>
+                        <h4 class="fw-bold mb-0 text-success">₹{{ savings }}</h4>
+                        <div class="row mt-2 border-top border-secondary pt-2">
+                            <div class="col-6 small">Market: ₹{{ market_cost }}</div>
+                            <div class="col-6 small text-end">Organic: ₹{{ organic_cost }}</div>
+                        </div>
+                    </div>
+                    <div class="glass-card p-3 border-start border-info border-4">
+                        <span class="kpi-title text-info">Farm Production Check</span>
+                        <p class="small mb-0 fw-bold">{{ availability_message }}</p>
+                    </div>
+                    <div class="glass-card p-3 border-start border-warning border-4">
+                        <span class="kpi-title text-warning">AI Soil Advisory</span>
+                        <p class="small mb-0 fw-bold">{{ warning }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-2 mt-2">
+                {% if application_tip %}
+                <div class="col-12">
+                    <div class="glass-card p-2 bg-success bg-opacity-10 border-0">
+                        <small class="fw-bold text-success"><i class="fas fa-road me-1"></i> ROADMAP: {{ application_tip }}</small>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="col-12">
+                    <div class="glass-card p-3">
+                        <span class="kpi-title">Optimization Comparison</span>
+                        <div class="row text-center g-2">
+                            {% for manure, weight in result.all_options.items %}
+                            <div class="col-4">
+                                <div class="bg-dark p-2 rounded small border border-secondary">
+                                    <div class="fw-bold">{{ manure }}</div>
+                                    <div class="text-success">{{ weight }} kg</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% else %}
+            <div class="glass-card justify-content-center align-items-center opacity-50">
+                <i class="fas fa-seedling fa-4x text-success mb-3"></i>
+                <h5 class="fw-bold">READY FOR OPTIMIZATION</h5>
+                <p class="small text-center">Adjust soil parameters and click "Optimize Nutrients" <br> to generate your organic plan.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if error %}
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div class="toast show bg-danger text-white border-0" role="alert">
+        <div class="toast-body">{{ error }}</div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    // Selection Highlighting
+    document.querySelectorAll('.manure-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.manure-card').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    {% if nutrient_chart_labels %}
+    const ctx = document.getElementById('nutrientChart');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ nutrient_chart_labels|safe }},
+            datasets: [{
+                data: {{ nutrient_chart_values|safe }},
+                backgroundColor: ['#2ecc71', '#3498db', '#f1c40f'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#ffffff', font: { size: 10 } } }
+            }
+        }
+    });
+    {% endif %}
+</script>
+<!-- 📘 SOIL HELP MODAL -->
+<div class="modal fade" id="soilGuideModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white">
+
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title">🌱 How to Get Soil Values?</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body small">
+
+        <p class="fw-bold text-success">Step 1:</p>
+        <p>Visit your nearest Agricultural Office / Krishi Bhavan.</p>
+
+        <p class="fw-bold text-success">Step 2:</p>
+        <p>Collect soil sample from 15–20 cm depth.</p>
+
+        <p class="fw-bold text-success">Step 3:</p>
+        <p>Submit sample for testing.</p>
+
+        <p class="fw-bold text-success">Step 4:</p>
+        <p>Receive Soil Health Card with N, P, K and pH values.</p>
+
+        <hr>
+
+        <p class="fw-bold text-info">🌐 Online Option:</p>
+        <a href="https://soilhealth.dac.gov.in/" target="_blank"
+           class="btn btn-outline-info btn-sm w-100">
+           Visit Government Soil Portal
+        </a>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Crop Recommendation | SmartAgri AI</title>
+
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+/* ================= VIDEO BG ================= */
+#bg-video{
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+}
+body::before{
+    content:"";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.65);
+    z-index: -1;
+}
+body{
+    font-family: "Segoe UI", system-ui, sans-serif;
+    color: #fff;
+}
+
+/* ================= GLASS ================= */
+.glass{
+    background: rgba(18,28,22,.65);
+    backdrop-filter: blur(18px);
+    border-radius: 18px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.45);
+    padding: 28px;
+}
+
+/* ================= HEAD ================= */
+.page-title{
+    font-weight: 800;
+    color: #7CFF9D;
+}
+.subtitle{ color:#cfd8d3 }
+
+/* ================= FORM ================= */
+.form-label{
+    font-weight: 600;
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+.form-control{
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.15);
+    color: #E8FFF1;              /* ✅ INPUT TEXT COLOR */
+    border-radius: 12px;
+}
+
+.form-control::placeholder{
+    color: rgba(200,255,215,.65); /* ✅ PLACEHOLDER COLOR */
+}
+
+.form-control:focus{
+    background: rgba(255,255,255,.16);
+    color: #FFFFFF;
+    box-shadow: 0 0 0 2px rgba(124,255,157,.45);
+}
+
+}
+
+/* ================= BUTTON ================= */
+.btn-ai{
+    background: linear-gradient(135deg,#2ecc71,#1e8449);
+    border:none;
+    padding:14px;
+    border-radius:30px;
+    font-weight:600;
+}
+.btn-ai:hover{ transform: scale(1.03) }
+
+/* ================= RESULT ================= */
+.result-box{
+    background: rgba(124,255,157,.12);
+    border-left: 4px solid #7CFF9D;
+    padding:18px;
+    border-radius:12px;
+}
+
+/* ================= SKELETON ================= */
+.skeleton{
+    height:18px;
+    background: linear-gradient(90deg,#2a3a30,#3c4f44,#2a3a30);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius:8px;
+    margin-bottom:12px;
+}
+@keyframes shimmer{
+    0%{background-position:200% 0}
+    100%{background-position:-200% 0}
+}
+
+/* ================= BACK LINK ================= */
+.back-link{
+    position:absolute;
+    top:18px;
+    left:24px;
+    color:#cfd8d3;
+    text-decoration:none;
+}
+.back-link:hover{ color:#7CFF9D }
+
+.confidence-text{
+    font-size: .95rem;
+    color: #CFFFE0;
+    margin-top: 6px;
+}
+
+.confidence-value{
+    color: #7CFF9D;      /* ✅ HIGH-CONTRAST GREEN */
+    font-weight: 700;
+}
+
+.btn-predict{
+    background: linear-gradient(135deg, #2ecc71, #1e8449);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 14px 0;
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 8px 24px rgba(46,204,113,.45);
+    transition: all .3s ease;
+}
+
+/* Hover = Ultra-Pro feel */
+.btn-predict:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(46,204,113,.65);
+    background: linear-gradient(135deg, #34eb83, #239b56);
+}
+
+/* Active click */
+.btn-predict:active{
+    transform: scale(.98);
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- VIDEO -->
+<video autoplay muted loop playsinline id="bg-video">
+    <source src="{% static 'videos/agriculture_bg.mp4' %}" type="video/mp4">
+</video>
+
+<a href="{% url 'farmer_dashboard' %}" class="back-link">← Back to Dashboard</a>
+
+<div class="container py-5">
+
+<div class="text-center mb-5">
+    <h2 class="page-title">🌾 Crop Recommendation System</h2>
+    <p class="subtitle">AI-powered crop & fertilizer advisory</p>
+</div>
+
+<div class="row g-4">
+
+<!-- INPUT -->
+<div class="col-md-6">
+<div class="glass">
+
+<h5 class="text-success mb-3">Soil Parameters</h5>
+
+<button class="btn btn-outline-warning mb-3" onclick="toggleGuide()">
+🧭 Need Help Finding Soil Values?
+</button>
+
+<div id="soilGuide" style="display:none;" class="alert alert-success">
+
+<h6 class="fw-bold">🌱 How to Get Soil Test Values</h6>
+
+<ol class="small">
+
+<li>
+Visit the nearest <b>Agricultural Soil Testing Laboratory</b>.
+</li>
+
+<li>
+Collect a small soil sample (about 500g) from your field.
+</li>
+
+<li>
+Submit the sample to the lab for testing.
+</li>
+
+<li>
+The lab will provide values for:
+<ul>
+<li>Nitrogen (N)</li>
+<li>Phosphorus (P)</li>
+<li>Potassium (K)</li>
+<li>Soil pH</li>
+</ul>
+</li>
+
+<li>
+You can also register online through the Government portal:
+<br><br>
+
+<a href="https://soilhealth.dac.gov.in/"
+target="_blank"
+class="btn btn-sm btn-success">
+
+🔬 Open Government Soil Test Portal
+
+</a>
+
+</li>
+
+</ol>
+
+<p class="small text-muted">
+Tip: If you don't know soil values, you can use the 
+<b>"AI estimation option"</b> in this form.
+</p>
+
+</div>
+
+<form method="post" onsubmit="showLoader()">
+{% csrf_token %}
+
+<div class="mb-3">
+<label class="form-label">
+Nitrogen (mg/kg)
+<i class="bi bi-info-circle" title="Essential for leaf growth"></i>
+</label>
+<input type="number" name="N" min="0" max="140"
+placeholder="Typical range: 0 – 140"
+class="form-control" required>
+</div>
+
+<div class="mb-3">
+<label class="form-label">
+Phosphorus (mg/kg)
+<i class="bi bi-info-circle" title="Supports root development"></i>
+</label>
+<input type="number" name="P" min="0" max="145"
+placeholder="Typical range: 0 – 145"
+class="form-control" required>
+</div>
+
+<div class="mb-3">
+<label class="form-label">
+Potassium (mg/kg)
+<i class="bi bi-info-circle" title="Improves disease resistance"></i>
+</label>
+<input type="number" name="K" min="0" max="205"
+placeholder="Typical range: 0 – 205"
+class="form-control" required>
+</div>
+
+<div class="mb-3">
+<label class="form-label">
+Soil pH
+<i class="bi bi-info-circle" title="Affects nutrient absorption"></i>
+</label>
+<input type="number" step="0.1" min="3" max="10"
+name="ph"
+placeholder="Ideal range: 5.5 – 7.5"
+class="form-control" required>
+</div>
+
+<div class="mb-4">
+<label class="form-label">
+Rainfall (mm)
+<i class="bi bi-info-circle" title="Annual rainfall requirement"></i>
+</label>
+<input type="number" min="0" max="3000"
+name="rainfall"
+placeholder="Annual rainfall in mm"
+class="form-control" required>
+</div>
+
+<button type="submit" class="btn btn-predict w-100">
+✨ AI Predict Best Crop
+</button>
+
+</form>
+</div>
+</div>
+
+<!-- RESULT -->
+<div class="col-md-6">
+<div class="glass h-100">
+
+<h5 class="text-success mb-3">Prediction Result</h5>
+
+<div id="loader" style="display:none">
+<div class="skeleton"></div>
+<div class="skeleton"></div>
+<div class="skeleton"></div>
+</div>
+
+{% if prediction %}
+<div class="result-box mb-3">
+<h6>🌱 Recommended Crop</h6>
+<h3 class="fw-bold text-success">{{ prediction|title }}</h3>
+<p class="confidence-text">
+    Confidence Score: <span class="confidence-value">92%</span>
+</p>
+
+</div>
+
+<h6>🔁 Alternative Crops</h6>
+<ul>
+<li>Rice (88%)</li>
+<li>Wheat (83%)</li>
+<li>Sorghum (79%)</li>
+</ul>
+
+{% if fertilizer_advice %}
+<h6 class="mt-3">🧪 Fertilizer Advice</h6>
+<ul>
+{% for item in fertilizer_advice %}
+<li>{{ item }}</li>
+{% endfor %}
+</ul>
+{% endif %}
+
+  <h5 class="mt-4 text-success">🌱 Organic Fertilizer Alternatives</h5>
+
+<ul>
+  {% for source, qty in organic_recommendation.items %}
+    <li>
+      Apply <b>{{ qty }} kg</b> of <b>{{ source }}</b>
+    </li>
+  {% endfor %}
+</ul>
+
+<div class="mt-4 d-flex justify-content-end gap-2">
+<button class="btn btn-outline-light">💾 Save History</button>
+<a href="{% url 'crop_advisory_pdf' %}" class="btn btn-outline-success">
+📄 Download PDF
+</a>
+</div>
+
+{% elif error %}
+<p class="text-danger">❌ {{ error }}</p>
+
+{% else %}
+<p class="text-muted">Enter soil data to receive AI recommendations.</p>
+{% endif %}
+
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+
+function toggleGuide(){
+
+let guide = document.getElementById("soilGuide")
+
+if(guide.style.display === "none"){
+guide.style.display = "block"
+}else{
+guide.style.display = "none"
+}
+
+}
+
+</script>
+<script>
+function showLoader(){
+    document.getElementById("loader").style.display="block";
+}
+</script>
+
+</body>
+</html>
+{% endblock %}

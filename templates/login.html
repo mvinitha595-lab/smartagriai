@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- LOGIN PAGE HTML -->
+
+
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Farmer Login | SmartAgri AI</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+/* ===== ROOT ===== */
+:root{
+  --green:#2ecc71;
+  --dark:#0c1611;
+  --glass:rgba(20,30,24,.75);
+  --muted:#aab7b1;
+}
+
+body{
+  margin:0;
+  font-family:"Inter","Segoe UI",system-ui,sans-serif;
+  height:100vh;
+  overflow:hidden;
+  color:#fff;
+}
+
+/* ===== BACKGROUND VIDEO ===== */
+.bg-video{
+  position:fixed;
+  top:0; left:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  z-index:-2;
+}
+
+.bg-overlay{
+  position:fixed;
+  top:0; left:0;
+  width:100%;
+  height:100%;
+  background:linear-gradient(
+    rgba(12,22,17,.88),
+    rgba(12,22,17,.88)
+  );
+  z-index:-1;
+}
+
+/* ===== BACK LINK ===== */
+.back-link{
+  position:absolute;
+  top:28px;
+  left:32px;
+  color:#cfd8d3;
+  text-decoration:none;
+  font-weight:500;
+}
+
+.back-link:hover{
+  color:var(--green);
+}
+
+/* ===== LOGIN CARD ===== */
+.login-wrapper{
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.login-card{
+  width:420px;
+  background:var(--glass);
+  backdrop-filter:blur(22px);
+  border-radius:24px;
+  padding:42px 40px;
+  box-shadow:0 40px 120px rgba(0,0,0,.6);
+  text-align:center;
+}
+
+/* ===== LOGO ===== */
+.login-logo{
+  height:80px;                 /* ✅ PERFECT MEDIUM SIZE */
+  width:auto;
+  margin-bottom:14px;
+  filter:drop-shadow(0 0 16px rgba(46,204,113,.6));
+}
+
+/* ===== TEXT ===== */
+.login-card h3{
+  font-weight:700;
+  margin-bottom:24px;
+}
+
+.form-label{
+  text-align:left;
+  display:block;
+  font-size:.9rem;
+  color:#cfd8d3;
+}
+
+/* ===== INPUTS ===== */
+.form-control{
+  background:rgba(255,255,255,.06);
+  border:none;
+  border-radius:14px;
+  padding:12px 14px;
+  color:#fff;
+}
+
+.form-control:focus{
+  box-shadow:0 0 0 2px rgba(46,204,113,.35);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+}
+
+.input-group-text{
+  background:transparent;
+  border:none;
+  color:#cfd8d3;
+  cursor:pointer;
+}
+
+/* ===== BUTTON ===== */
+.login-btn{
+  background:linear-gradient(135deg,#2ecc71,#27ae60);
+  border:none;
+  border-radius:30px;
+  padding:12px;
+  font-weight:600;
+  width:100%;
+  transition:.25s;
+}
+
+.login-btn:hover{
+  transform:scale(1.03);
+  box-shadow:0 0 22px rgba(46,204,113,.6);
+}
+
+/* ===== LINKS ===== */
+.login-links{
+  font-size:.9rem;
+  margin-top:18px;
+  color:rgba(255,255,255,.75);
+}
+
+.login-links a{
+  color:#6ee7b7;
+  font-weight:500;
+  text-decoration:none;
+}
+
+.login-links a:hover{
+  color:#2ecc71;
+  text-shadow:0 0 8px rgba(46,204,113,.6);
+}
+
+/* ===== ALERT ===== */
+.alert{
+  background:rgba(255,0,0,.15);
+  border:none;
+  color:#ffdede;
+  border-radius:12px;
+  font-size:.9rem;
+}
+
+/* ===== CUSTOM LINK COLOR ===== */
+a {
+  color: #ffffff !important;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #2ecc71 !important;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- BACKGROUND -->
+<video class="bg-video" autoplay muted loop>
+  <source src="{% static 'videos/agriculture_bg.mp4' %}" type="video/mp4">
+</video>
+<div class="bg-overlay"></div>
+
+<!-- BACK LINK -->
+<a href="/" class="back-link">← Back to Home</a>
+
+<!-- LOGIN -->
+<div class="login-wrapper">
+  <div class="login-card">
+
+    <img src="{% static 'images/logo.png' %}" class="login-logo" alt="SmartAgri AI">
+
+    <h3>Farmer Login</h3>
+
+    {% if messages %}
+  {% for message in messages %}
+    <div class="alert mb-3 text-center 
+      {% if message.tags == 'error' %}bg-danger bg-opacity-25{% else %}bg-success bg-opacity-25{% endif %}">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+    <form method="post">
+      {% csrf_token %}
+
+      <label class="form-label">Username</label>
+      <input type="text" name="username" class="form-control mb-3" required>
+
+      <label class="form-label">Password</label>
+      <div class="input-group mb-2">
+        <input type="password" id="password" name="password" class="form-control" required>
+        <span class="input-group-text" onclick="togglePassword()">
+          <i class="bi bi-eye"></i>
+        </span>
+      </div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+
+ 
+
+
+</div>
+      
+
+      <button type="submit" class="btn login-btn" id="loginBtn">
+  <span id="btnText">Login</span>
+  <span id="spinner" class="spinner-border spinner-border-sm ms-2 d-none"></span>
+</button>
+
+<a href="{% url 'register' %}" class="custom-link">Register here</a>
+    </form>
+
+    
+
+   
+
+
+  </div>
+</div>
+
+<script>
+function togglePassword(){
+  const pwd = document.getElementById("password");
+  pwd.type = pwd.type === "password" ? "text" : "password";
+}
+
+document.querySelector("form").addEventListener("submit",()=>{
+  const btn = document.getElementById("loginBtn");
+  document.getElementById("btnText").innerText = "Authenticating...";
+  document.getElementById("spinner").classList.remove("d-none");
+  btn.disabled = true;
+});
+</script>
+
+</body>
+</html>
+
+{% endblock %}
